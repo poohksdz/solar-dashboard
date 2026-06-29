@@ -1,0 +1,402 @@
+[
+  {
+    "id": "session-1782751576667-90pjtg",
+    "timestamp": "2026-06-29T16:46:16.667Z",
+    "simTime": 6,
+    "simTimeLabel": "06:00",
+    "batteryLevel": 30,
+    "totalSaved": 0,
+    "weatherMode": "NORMAL",
+    "solarPower": 0,
+    "homeConsumption": 0,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 150
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782751705482-xsb5xg",
+    "timestamp": "2026-06-29T16:48:25.482Z",
+    "simTime": 6,
+    "simTimeLabel": "06:00",
+    "batteryLevel": 30,
+    "totalSaved": 0,
+    "weatherMode": "NORMAL",
+    "solarPower": 0,
+    "homeConsumption": 0,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 150
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782751763870-g36lw4",
+    "timestamp": "2026-06-29T16:49:23.870Z",
+    "simTime": 11.501737500000123,
+    "simTimeLabel": "11:30",
+    "batteryLevel": 30.230840584298864,
+    "totalSaved": 0.22386191322146637,
+    "weatherMode": "NORMAL",
+    "solarPower": 651.4533631410193,
+    "homeConsumption": 322.08514981073904,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 222.08514981073907
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782751763885-r93q53",
+    "timestamp": "2026-06-29T16:49:23.885Z",
+    "simTime": 11.500712499999906,
+    "simTimeLabel": "11:30",
+    "batteryLevel": 30.18541088044952,
+    "totalSaved": 0.22386191322146637,
+    "weatherMode": "NORMAL",
+    "solarPower": 651.4533631410193,
+    "homeConsumption": 322.08514981073904,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 222.08514981073907
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782751914083-bnidzj",
+    "timestamp": "2026-06-29T16:51:54.083Z",
+    "simTime": 16.681012500000367,
+    "simTimeLabel": "16:40",
+    "batteryLevel": 99.02716476209528,
+    "totalSaved": 3.0446022171299743,
+    "weatherMode": "NORMAL",
+    "solarPower": 4975.904735845947,
+    "homeConsumption": 246.8972343714796,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 146.8972343714796
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782751914096-vvnt23",
+    "timestamp": "2026-06-29T16:51:54.096Z",
+    "simTime": 11.663762500000367,
+    "simTimeLabel": "11:39",
+    "batteryLevel": 37.848443714112435,
+    "totalSaved": 3.0446022171299743,
+    "weatherMode": "NORMAL",
+    "solarPower": 4975.904735845947,
+    "homeConsumption": 246.8972343714796,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 146.8972343714796
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782752049236-z8vmm4",
+    "timestamp": "2026-06-29T16:54:09.236Z",
+    "simTime": 17.038974999999336,
+    "simTimeLabel": "17:02",
+    "batteryLevel": 100,
+    "totalSaved": 77.19950098862617,
+    "weatherMode": "NORMAL",
+    "solarPower": 4476.931522400764,
+    "homeConsumption": 227.0025062445369,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 127.0025062445369
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782752049260-l22r7n",
+    "timestamp": "2026-06-29T16:54:09.260Z",
+    "simTime": 13.70089999999946,
+    "simTimeLabel": "13:42",
+    "batteryLevel": 100,
+    "totalSaved": 77.19950098862617,
+    "weatherMode": "NORMAL",
+    "solarPower": 4476.931522400764,
+    "homeConsumption": 227.0025062445369,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 127.0025062445369
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782752178854-nii3ww",
+    "timestamp": "2026-06-29T16:56:18.854Z",
+    "simTime": 19.074724999999646,
+    "simTimeLabel": "19:04",
+    "batteryLevel": 82.9287766046975,
+    "totalSaved": 98.94480213269506,
+    "weatherMode": "NORMAL",
+    "solarPower": 4659.95368437075,
+    "homeConsumption": 173.01260116185847,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 73.01260116185847
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  },
+  {
+    "id": "session-1782752178873-ay2rj6",
+    "timestamp": "2026-06-29T16:56:18.873Z",
+    "simTime": 13.705754166666438,
+    "simTimeLabel": "13:42",
+    "batteryLevel": 100,
+    "totalSaved": 98.94480213269506,
+    "weatherMode": "NORMAL",
+    "solarPower": 4659.95368437075,
+    "homeConsumption": 173.01260116185847,
+    "gridImport": 0,
+    "appliances": [
+      {
+        "id": "fridge",
+        "name": "Smart Fridge",
+        "isOn": true,
+        "power": 73.01260116185847
+      },
+      {
+        "id": "ac",
+        "name": "Inverter AC",
+        "isOn": false,
+        "power": 1200
+      },
+      {
+        "id": "tv",
+        "name": "OLED TV",
+        "isOn": false,
+        "power": 250
+      },
+      {
+        "id": "light",
+        "name": "Hue Lights",
+        "isOn": false,
+        "power": 100
+      }
+    ],
+    "aiAutoMode": false,
+    "aiActionsCount": 0
+  }
+]

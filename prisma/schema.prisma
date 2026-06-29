@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SessionLog {
+  id              String   @id @default(cuid())
+  timestamp       DateTime @default(now())
+  simTime         Float
+  simTimeLabel    String
+  batteryLevel    Float
+  totalSaved      Float
+  weatherMode     String
+  solarPower      Float
+  homeConsumption Float
+  gridImport      Float
+  appliances      Json     // Array of appliances
+  aiAutoMode      Boolean  @default(false)
+  aiActionsCount  Int      @default(0)
+}
