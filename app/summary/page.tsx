@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { signOut } from "next-auth/react";
 import { Activity, Zap, Sun, BatteryCharging, CloudLightning, ArrowLeft, Trash2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
@@ -114,17 +115,26 @@ export default function SummaryPage() {
       <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 px-3 py-2 rounded-xl border border-indigo-500/20">
-              <ArrowLeft className="w-4 h-4" /> Back to Simulator
-            </Link>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
               <Activity className="w-5 h-5 text-fuchsia-400" /> Session Analytics
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={fetchLogs} className="text-xs font-bold text-slate-400 hover:text-white bg-slate-800 px-3 py-2 rounded-lg border border-white/10 flex items-center gap-2 transition-colors">
-              <RefreshCw className="w-3 h-3" /> Refresh
-            </button>
+            <div className="flex gap-4">
+              <Link 
+                href="/"
+                className="bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 px-6 rounded-lg transition-colors border border-slate-700 flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+              </Link>
+              <button 
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium py-2 px-6 rounded-lg transition-colors border border-red-500/30 flex items-center gap-2"
+              >
+                Logout
+              </button>
+            </div>
             <span className="text-xs text-slate-500 font-mono">{logs.length} sessions logged</span>
           </div>
         </div>

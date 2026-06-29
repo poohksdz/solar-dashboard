@@ -35,6 +35,11 @@ export interface Appliance {
 
 export type WeatherMode = 'NORMAL' | 'OVERLOAD' | 'CLOUDY' | 'STORM';
 
+export interface House {
+  id: string;
+  name: string;
+}
+
 export interface SystemState {
   simTime: number;
   batteryLevel: number;
@@ -45,6 +50,8 @@ export interface SystemState {
   isEngineActive: boolean;
   isAiAutoMode: boolean;
   aiLogs: AILog[];
+  houses: House[];
+  selectedHouseId: string;
 }
 
 const CONFIG = {
@@ -72,6 +79,7 @@ interface SolarContextType extends SystemState {
   setTime: (hour: number) => void;
   toggleAiAutoMode: () => void;
   saveSession: () => Promise<void>;
+  setSelectedHouseId: (id: string) => void;
   latestStat: SolarData;
   isSaving: boolean;
 }
@@ -94,7 +102,9 @@ const useSolarEngine = () => {
     weatherMode: 'NORMAL',
     isEngineActive: true,
     isAiAutoMode: false,
-    aiLogs: []
+    aiLogs: [],
+    houses: [{ id: 'default-house-1', name: 'Alpha Home' }],
+    selectedHouseId: 'default-house-1'
   });
 
   const stateRef = useRef(state);
@@ -103,7 +113,16 @@ const useSolarEngine = () => {
   const aiLastSimHourRef = useRef(-1);
   const aiLogIdRef = useRef(0);
   const autoLogLastHourRef = useRef(-1);
+  const notifiedLowBattery = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/houses').then(res => res.json()).then(data => {
+      if (data.houses && data.houses.length > 0) {
+        setState(prev => ({ ...prev, houses: data.houses, selectedHouseId: data.houses[0].id }));
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     stateRef.current = state;
@@ -122,6 +141,10 @@ const useSolarEngine = () => {
 
   const toggleEngine = useCallback(() => {
     setState(prev => ({ ...prev, isEngineActive: !prev.isEngineActive }));
+  }, []);
+
+  const setSelectedHouseId = useCallback((id: string) => {
+    setState(prev => ({ ...prev, selectedHouseId: id }));
   }, []);
 
   const setTime = useCallback((hour: number) => {
@@ -175,6 +198,7 @@ const useSolarEngine = () => {
           appliances: current.appliances.map(a => ({ id: a.id, name: a.name, isOn: a.isOn, power: a.power })),
           aiAutoMode: current.isAiAutoMode,
           aiActionsCount: current.aiLogs.length,
+          houseId: current.selectedHouseId,
         }),
       });
     } catch { /* silently fail */ }
@@ -238,6 +262,21 @@ const useSolarEngine = () => {
       newBattery = 0;
     }
     newBattery = Math.min(100, Math.max(0, newBattery));
+
+    if (newBattery < 20 && !notifiedLowBattery.current) {
+      notifiedLowBattery.current = true;
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '🚨 CRITICAL BATTERY ALERT',
+          message: `Battery level has dropped below 20% (${Math.floor(newBattery)}%). Immediate action required or grid import will increase.`,
+          color: 16711680 // Red
+        })
+      }).catch(() => {});
+    } else if (newBattery >= 30) {
+      notifiedLowBattery.current = false;
+    }
 
     // --- SKIP HISTORY WHEN ENGINE IS PAUSED ---
     if (!current.isEngineActive) {
@@ -364,6 +403,7 @@ const useSolarEngine = () => {
             appliances: current.appliances.map(a => ({ id: a.id, name: a.name, isOn: a.isOn, power: a.power })),
             aiAutoMode: current.isAiAutoMode,
             aiActionsCount: current.aiLogs.length,
+            houseId: current.selectedHouseId,
           }),
         }).catch(() => {});
       }
@@ -381,7 +421,7 @@ const useSolarEngine = () => {
     gridImport: lastHistory?.gridImport ?? 0,
   };
 
-  return { ...state, toggleAppliance, setWeatherMode, toggleEngine, setTime, toggleAiAutoMode, saveSession, latestStat, isSaving };
+  return { ...state, toggleAppliance, setWeatherMode, toggleEngine, setTime, toggleAiAutoMode, saveSession, setSelectedHouseId, latestStat, isSaving };
 };
 
 // --- COMPONENTS ---
@@ -537,8 +577,17 @@ const ControlPanel = () => {
       {/* Weather & Time Control Panel */}
       <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-xl flex flex-col gap-4">
         <div>
-          <div className="flex justify-between mb-4 text-white/70">
+          <div className="flex justify-between items-center mb-4 text-white/70">
             <span className="flex gap-2 text-sm font-semibold"><CloudLightning className="w-5 h-5 text-fuchsia-400" /> ENVIRONMENT</span>
+            <select
+              value={useSolarSystem().selectedHouseId}
+              onChange={(e) => useSolarSystem().setSelectedHouseId(e.target.value)}
+              className="bg-black/50 border border-white/10 text-xs font-bold text-slate-300 rounded-lg px-2 py-1 outline-none"
+            >
+              {useSolarSystem().houses.map(h => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <button onClick={() => setWeatherMode('NORMAL')} className={`flex flex-col items-center p-3 rounded-xl border transition-all ${weatherMode === 'NORMAL' ? 'bg-fuchsia-500/20 border-fuchsia-400/50 text-fuchsia-300' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>

@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         appliances: body.appliances ?? [],
         aiAutoMode: body.aiAutoMode ?? false,
         aiActionsCount: body.aiActionsCount ?? 0,
+        houseId: body.houseId ?? 'default-house-1',
       }
     });
     
