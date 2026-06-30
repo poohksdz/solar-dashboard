@@ -1,451 +1,438 @@
 'use client';
 
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stars, Cloud, Clouds, Html, RoundedBox, Float, Sparkles, Environment, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useSolarSystem } from '../app/page';
-import { Battery as BatteryIcon, Sun, Home } from 'lucide-react';
 
-// Smooth Appliance Components
-const SmoothFridge = ({ isOn, name }: { isOn: boolean, name: string }) => {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  useFrame((_, delta) => {
-    if (matRef.current) {
-      const targetEmissive = isOn ? new THREE.Color("#06b6d4") : new THREE.Color("#000000");
-      const targetColor = isOn ? new THREE.Color("#f8fafc") : new THREE.Color("#94a3b8");
-      matRef.current.emissive.lerp(targetEmissive, delta * 5);
-      matRef.current.color.lerp(targetColor, delta * 5);
-      matRef.current.emissiveIntensity = THREE.MathUtils.lerp(matRef.current.emissiveIntensity, isOn ? 0.2 : 0, delta * 5);
-    }
-  });
-  return (
-    <group position={[-2.5, 1, -2]}>
-      <Html position={[0, 1.5, 0]} center>
-        <div className="text-[10px] font-bold text-white bg-black/50 px-1 rounded">{name}</div>
-      </Html>
-      <mesh castShadow>
-        <boxGeometry args={[1, 2, 1]} />
-        <meshStandardMaterial ref={matRef} metalness={0.8} roughness={0.2} />
-      </mesh>
-    </group>
-  );
-}
+/*
+ * HUAWEI FUSIONSOLAR AESTHETIC REWRITE
+ * - Ultra-clean, light gray vector-style look
+ * - A-Frame house with garage on left
+ * - Utility pole on far left
+ * - Fixed isometric camera
+ * - Exact text labels with dashed connector lines
+ */
 
-const SmoothTV = ({ isOn, name }: { isOn: boolean, name: string }) => {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  useFrame((_, delta) => {
-    if (matRef.current) {
-      const targetEmissive = isOn ? new THREE.Color("#3b82f6") : new THREE.Color("#000000");
-      matRef.current.emissive.lerp(targetEmissive, delta * 5);
-      matRef.current.emissiveIntensity = THREE.MathUtils.lerp(matRef.current.emissiveIntensity, isOn ? 1.5 : 0, delta * 5);
-    }
-  });
-  return (
-    <group position={[2, 1, 2.8]}>
-      <Html position={[0, 1, 0]} center>
-        <div className="text-[10px] font-bold text-white bg-black/50 px-1 rounded">{name}</div>
-      </Html>
-      <mesh position={[0, 0, -0.1]} castShadow>
-        <boxGeometry args={[2, 1.2, 0.1]} />
-        <meshStandardMaterial ref={matRef} color="#111827" />
-      </mesh>
-      <mesh position={[0, -0.7, -0.1]} castShadow>
-        <boxGeometry args={[0.5, 0.2, 0.3]} />
-        <meshStandardMaterial color="#374151" />
-      </mesh>
-    </group>
-  );
-}
+// --- Materials (Cached) ---
+const m = {
+  white: new THREE.MeshLambertMaterial({ color: '#ffffff' }),
+  baseGray: new THREE.MeshLambertMaterial({ color: '#e5e7eb' }),
+  darkGray: new THREE.MeshLambertMaterial({ color: '#9ca3af' }),
+  bluePanel: new THREE.MeshLambertMaterial({ color: '#1e3a8a' }),
+  panelFrame: new THREE.MeshLambertMaterial({ color: '#d1d5db' }),
+  glass: new THREE.MeshLambertMaterial({ color: '#f3f4f6', transparent: true, opacity: 0.8 }),
+  glassFrame: new THREE.MeshLambertMaterial({ color: '#6b7280' }),
+  batteryGreen: new THREE.MeshBasicMaterial({ color: '#22c55e' }),
+  lineGray: new THREE.MeshBasicMaterial({ color: '#9ca3af' }),
+  poleGray: new THREE.MeshLambertMaterial({ color: '#d1d5db' }),
+  wire: new THREE.MeshBasicMaterial({ color: '#6b7280' }),
+  floor: new THREE.MeshLambertMaterial({ color: '#f8fafc' }),
+  platform: new THREE.MeshLambertMaterial({ color: '#94a3b8' })
+};
 
-const SmoothAC = ({ isOn, name }: { isOn: boolean, name: string }) => {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  useFrame((_, delta) => {
-    if (matRef.current) {
-      const targetEmissive = isOn ? new THREE.Color("#06b6d4") : new THREE.Color("#000000");
-      matRef.current.emissive.lerp(targetEmissive, delta * 5);
-      matRef.current.emissiveIntensity = THREE.MathUtils.lerp(matRef.current.emissiveIntensity, isOn ? 0.5 : 0, delta * 5);
-    }
-  });
-  return (
-    <group position={[2, 3.5, -2.8]}>
-      <Html position={[0, 0.5, 0]} center>
-        <div className="text-[10px] font-bold text-white bg-black/50 px-1 rounded">{name}</div>
-      </Html>
-      <mesh castShadow>
-        <boxGeometry args={[1.5, 0.4, 0.5]} />
-        <meshStandardMaterial ref={matRef} color="#e2e8f0" />
-      </mesh>
-      {isOn && <Sparkles position={[0, -0.5, 0]} scale={[1.5, 1, 1]} count={20} color="#67e8f9" speed={0.8} opacity={0.8} />}
-    </group>
-  );
-}
+// --- Geometries (Cached) ---
+const box = new THREE.BoxGeometry(1, 1, 1);
+const cyl = new THREE.CylinderGeometry(1, 1, 1, 12);
+const prism = new THREE.CylinderGeometry(1, 1, 1, 3); // Triangular prism
+const plane = new THREE.PlaneGeometry(100, 100);
 
-const SmoothLight = ({ isOn, name }: { isOn: boolean, name: string }) => {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
-  useFrame((_, delta) => {
-    if (matRef.current) {
-      const targetEmissive = isOn ? new THREE.Color("#facc15") : new THREE.Color("#000000");
-      const targetColor = isOn ? new THREE.Color("#fde047") : new THREE.Color("#cbd5e1");
-      matRef.current.emissive.lerp(targetEmissive, delta * 5);
-      matRef.current.color.lerp(targetColor, delta * 5);
-      matRef.current.emissiveIntensity = THREE.MathUtils.lerp(matRef.current.emissiveIntensity, isOn ? 3 : 0, delta * 5);
-    }
-    if (lightRef.current) {
-      lightRef.current.intensity = THREE.MathUtils.lerp(lightRef.current.intensity, isOn ? 2 : 0, delta * 5);
-    }
-  });
-  return (
-    <group position={[0, 3.8, 0]}>
-      <Html position={[0, -0.5, 0]} center>
-        <div className="text-[10px] font-bold text-white bg-black/50 px-1 rounded">{name}</div>
-      </Html>
-      <mesh>
-        <sphereGeometry args={[0.2, 16, 16]} />
-        <meshStandardMaterial ref={matRef} />
-      </mesh>
-      <pointLight ref={lightRef} position={[0, -0.5, 0]} color="#fef08a" distance={10} intensity={0} />
-    </group>
-  );
-}
+// --- Formatter ---
+const formatKW = (watts: number) => (watts / 1000).toFixed(3);
 
-const sharedGlassMat = new THREE.MeshPhysicalMaterial({
-  color: "#0f172a",
-  metalness: 0.9,
-  roughness: 0.05,
-  clearcoat: 1.0,
-  clearcoatRoughness: 0.1
-});
-
-const SmoothSolarArray = ({ isProducing }: { isProducing: boolean }) => {
-  useFrame((_, delta) => {
-    const targetEmissive = isProducing ? new THREE.Color("#0284c7") : new THREE.Color("#000000");
-    sharedGlassMat.emissive.lerp(targetEmissive, delta * 3);
-    sharedGlassMat.emissiveIntensity = THREE.MathUtils.lerp(sharedGlassMat.emissiveIntensity, isProducing ? 0.8 : 0, delta * 3);
-  });
+// --- Label Component (with SVG dashed line) ---
+const DashedLabel = ({ position, text, subtext, value, unit, lineColor, lineLength, lineAngle, align = 'left' }: {
+  position: [number, number, number], text: string, subtext?: string, value: number, unit: string,
+  lineColor: string, lineLength: number, lineAngle: number, align?: 'left' | 'right' | 'center'
+}) => {
+  // lineAngle in degrees (0 = right, 90 = up, 180 = left, 270 = down)
+  const rad = (lineAngle * Math.PI) / 180;
+  const dx = Math.cos(rad) * lineLength;
+  const dy = Math.sin(rad) * lineLength;
 
   return (
-    <group position={[0, 4.4, 0]} rotation={[-Math.PI / 16, 0, 0]}>
-      <Label color="bg-amber-900/80 border-amber-400/50" position={[0, 1.5, 0]}>
-        <Sun className="w-4 h-4 text-amber-400" /> ROOF SOLAR ARRAY
-      </Label>
-      
-      {[-2.1, 0, 2.1].map(x => (
-        [-1.2, 1.2].map(z => (
-          <group key={`${x}-${z}`} position={[x, 0, z]}>
-            {/* Frame */}
-            <mesh castShadow receiveShadow position={[0, 0, 0]}>
-              <boxGeometry args={[2.0, 0.1, 2.3]} />
-              <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.4} />
-            </mesh>
-            {/* Glass Surface */}
-            <mesh castShadow receiveShadow position={[0, 0.06, 0]} material={sharedGlassMat}>
-              <boxGeometry args={[1.9, 0.02, 2.2]} />
-            </mesh>
-          </group>
-        ))
-      ))}
-      {isProducing && <Sparkles position={[0, 0.5, 0]} scale={[6.5, 1, 5]} size={5} count={40} color="#fbbf24" speed={0.4} opacity={0.6} />}
-    </group>
-  );
-}
+    <Html position={position} center zIndexRange={[100, 0]}>
+      <div style={{ position: 'relative', width: 0, height: 0 }}>
+        {/* SVG Dashed Line */}
+        <svg style={{
+          position: 'absolute',
+          top: Math.min(0, -dy),
+          left: Math.min(0, dx),
+          width: Math.abs(dx) + 2,
+          height: Math.abs(dy) + 2,
+          pointerEvents: 'none',
+          overflow: 'visible'
+        }}>
+          <line
+            x1={dx < 0 ? Math.abs(dx) : 0} y1={dy > 0 ? dy : 0}
+            x2={dx < 0 ? 0 : dx} y2={dy > 0 ? 0 : -dy}
+            stroke={lineColor}
+            strokeWidth="1.5"
+            strokeDasharray="4 4"
+          />
+        </svg>
 
-const Label = ({ children, color = "bg-slate-900/80", position = [0, 2.5, 0] }: { children: React.ReactNode, color?: string, position?: [number, number, number] }) => (
-  <Html center position={position}>
-    <div className={`px-4 py-2 rounded-xl border border-white/20 backdrop-blur-md text-white text-sm font-bold whitespace-nowrap flex items-center gap-2 shadow-2xl ${color}`}>
-      {children}
-    </div>
-  </Html>
+        {/* Text Box */}
+        <div style={{
+          position: 'absolute',
+          top: -dy - 20,
+          left: dx + (align === 'right' ? -120 : align === 'center' ? -60 : 10),
+          width: 150,
+          textAlign: align,
+          pointerEvents: 'none',
+          fontFamily: 'Inter, sans-serif'
+        }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'baseline', justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start', gap: '4px' }}>
+            {formatKW(value)} <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>{unit}</span>
+            {subtext && <span style={{ fontSize: '13px', fontWeight: 700, color: '#d97706', marginLeft: '4px' }}>{subtext}</span>}
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748b', marginTop: '2px' }}>
+            {text}
+          </div>
+        </div>
+      </div>
+    </Html>
+  );
+};
+
+// --- Models ---
+const UtilityPole = () => (
+  <group position={[-5, 2.5, -2.5]}>
+    {/* Main Pole */}
+    <mesh geometry={box} scale={[0.15, 6, 0.15]} material={m.poleGray} />
+    {/* Cross arms */}
+    <mesh position={[0, 2.2, 0]} geometry={box} scale={[2.5, 0.1, 0.1]} material={m.poleGray} />
+    <mesh position={[0, 1.4, 0]} geometry={box} scale={[1.8, 0.1, 0.1]} material={m.poleGray} />
+    {/* Insulators */}
+    {[-1.1, 0, 1.1].map(x => (
+      <mesh key={`ins1-${x}`} position={[x, 2.3, 0]} geometry={cyl} scale={[0.08, 0.2, 0.08]} material={m.darkGray} />
+    ))}
+    {[-0.7, 0.7].map(x => (
+      <mesh key={`ins2-${x}`} position={[x, 1.5, 0]} geometry={cyl} scale={[0.08, 0.2, 0.08]} material={m.darkGray} />
+    ))}
+    {/* Transformer / Box */}
+    <mesh position={[0.25, -0.5, 0.15]} geometry={box} scale={[0.5, 0.7, 0.4]} material={m.baseGray} />
+    {/* Wire to house */}
+    <mesh position={[1.8, 0.5, 1.2]} rotation={[0, -0.2, -Math.PI / 5]} geometry={cyl} scale={[0.02, 5, 0.02]} material={m.wire} />
+  </group>
 );
 
-const BigHouse = ({ isProducing }: { isProducing: boolean }) => {
-  const { appliances } = useSolarSystem();
-  return (
-    <group position={[0, 0, 0]}>
-      <Float speed={2} rotationIntensity={0.05} floatIntensity={0.1}>
-        <Label color="bg-indigo-900/80 border-indigo-400/50" position={[0, 7.5, 0]}>
-          <Home className="w-4 h-4 text-indigo-400" /> SMART VILLA
-        </Label>
-        
-        {/* Main Body (Glass) */}
-        <mesh position={[0, 2, 0]} castShadow receiveShadow>
-          <RoundedBox args={[7, 4, 6]} radius={0.2} smoothness={4}>
-            <meshPhysicalMaterial 
-              color="#f8fafc" 
-              metalness={0.1} 
-              roughness={0.1} 
-              transparent={true} 
-              opacity={0.3} 
-              transmission={0.9} 
-              thickness={0.5} 
-              side={THREE.DoubleSide} 
-            />
-          </RoundedBox>
-        </mesh>
-        
-        {/* Modern Flat Roof */}
-        <mesh position={[0, 4.1, 0]} castShadow receiveShadow>
-          <RoundedBox args={[7.5, 0.4, 6.5]} radius={0.1} smoothness={2}>
-            <meshStandardMaterial color="#334155" metalness={0.4} roughness={0.6} />
-          </RoundedBox>
-        </mesh>
+// --- Dynamic Materials ---
+const mGlassOff = new THREE.MeshLambertMaterial({ color: '#f3f4f6', transparent: true, opacity: 0.8 });
+const mGlassOn = new THREE.MeshLambertMaterial({ color: '#fde047', transparent: true, opacity: 0.9, emissive: '#fde047', emissiveIntensity: 0.5 });
+const mTVOn = new THREE.MeshBasicMaterial({ color: '#3b82f6' });
 
-        {/* Realistic Solar Panels on Roof */}
-        <SmoothSolarArray isProducing={isProducing} />
+// --- Environment Components ---
+const SkyEnv = ({ hour, weather }: { hour: number, weather: string }) => {
+  const isNight = hour < 6 || hour > 18;
+  const isStorm = weather === 'STORM';
+  const isCloudy = weather === 'CLOUDY';
 
-        {/* Big Door */}
-        <mesh position={[0, 1.2, 3.01]} castShadow>
-          <boxGeometry args={[1.5, 2.2, 0.1]} />
-          <meshStandardMaterial color="#8b5cf6" metalness={0.4} roughness={0.4} />
-        </mesh>
+  // Calculate sky color
+  let skyColor = '#f8fafc'; // Day
+  if (isNight) skyColor = '#0f172a'; // Night
+  else if (isStorm) skyColor = '#475569'; // Storm
+  else if (isCloudy) skyColor = '#cbd5e1'; // Cloudy
 
-        {/* Glowing Windows */}
-        <mesh position={[-2, 2, 3.01]}>
-          <boxGeometry args={[1.5, 1.2, 0.05]} />
-          <meshStandardMaterial color="#38bdf8" emissive="#0ea5e9" emissiveIntensity={1.5} transparent opacity={0.5} />
-        </mesh>
-        <mesh position={[2, 2, 3.01]}>
-          <boxGeometry args={[1.5, 1.2, 0.05]} />
-          <meshStandardMaterial color="#38bdf8" emissive="#0ea5e9" emissiveIntensity={1.5} transparent opacity={0.5} />
-        </mesh>
+  // Sun position (arch from 6 to 18)
+  let sunY = -10;
+  let sunX = 0;
+  if (!isNight) {
+    const progress = (hour - 6) / 12; // 0 to 1
+    const angle = Math.PI - (progress * Math.PI); // PI to 0
+    sunX = Math.cos(angle) * 20;
+    sunY = Math.sin(angle) * 15;
+  }
 
-        {/* Appliances Inside */}
-        <group position={[0, 0, 0]}>
-          {appliances.map(app => {
-            if (app.id === 'fridge') return <SmoothFridge key={app.id} isOn={app.isOn} name={app.name} />;
-            if (app.id === 'tv') return <SmoothTV key={app.id} isOn={app.isOn} name={app.name} />;
-            if (app.id === 'ac') return <SmoothAC key={app.id} isOn={app.isOn} name={app.name} />;
-            if (app.id === 'light') return <SmoothLight key={app.id} isOn={app.isOn} name={app.name} />;
-            return null;
-          })}
-        </group>
-      </Float>
-    </group>
-  );
-};
-
-
-
-const Battery = ({ level }: { level: number }) => {
-  const fillMesh = useRef<THREE.Mesh>(null);
-  const coreMat = useRef<THREE.MeshStandardMaterial>(null);
-
-  useFrame((_, delta) => {
-    if (fillMesh.current) {
-      const targetHeight = Math.max(0.1, (3 * level) / 100);
-      fillMesh.current.scale.y = THREE.MathUtils.lerp(fillMesh.current.scale.y, targetHeight, delta * 5);
-      fillMesh.current.position.y = THREE.MathUtils.lerp(fillMesh.current.position.y, targetHeight / 2, delta * 5);
-    }
-    if (coreMat.current) {
-      const targetColor = level < 20 ? new THREE.Color("#ef4444") : new THREE.Color("#10b981");
-      coreMat.current.color.lerp(targetColor, delta * 5);
-      coreMat.current.emissive.lerp(targetColor, delta * 5);
-    }
-  });
-
-  return (
-    <group position={[6, 0, 1]}>
-      <Float speed={2} rotationIntensity={0.05} floatIntensity={0.1}>
-        <Label color="bg-emerald-900/80 border-emerald-400/50"><BatteryIcon className="w-4 h-4 text-emerald-400" /> STORAGE {level.toFixed(0)}%</Label>
-        
-        {/* Inner Core */}
-        <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[1.2, 1.2, 3, 32]} />
-          <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.3} />
-        </mesh>
-
-        {/* Top/Bottom Caps */}
-        <mesh position={[0, 3.1, 0]}>
-          <cylinderGeometry args={[1.3, 1.3, 0.2, 32]} />
-          <meshStandardMaterial color="#334155" metalness={0.5} />
-        </mesh>
-        <mesh position={[0, -0.1, 0]}>
-          <cylinderGeometry args={[1.3, 1.3, 0.2, 32]} />
-          <meshStandardMaterial color="#334155" metalness={0.5} />
-        </mesh>
-
-        {/* Glowing Level Fill */}
-        <group position={[0, 0, 0]}>
-          <mesh ref={fillMesh} position={[0, 0, 0]}>
-            <cylinderGeometry args={[1.25, 1.25, 1, 32]} />
-            <meshStandardMaterial ref={coreMat} transparent opacity={0.8} emissiveIntensity={2} side={THREE.DoubleSide} />
-          </mesh>
-        </group>
-
-        {/* Glass Outer Shell */}
-        <mesh position={[0, 1.5, 0]}>
-          <cylinderGeometry args={[1.35, 1.35, 3, 32]} />
-          <meshStandardMaterial color="#94a3b8" transparent opacity={0.15} metalness={0.9} roughness={0.1} side={THREE.DoubleSide} />
-        </mesh>
-      </Float>
-    </group>
-  );
-};
-
-const Rain = () => {
-  const count = 1000;
-  const mesh = useRef<THREE.InstancedMesh>(null);
-  
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const [particles] = useState(() => {
-    const temp = [];
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 30;
-      const y = Math.random() * 20;
-      const z = (Math.random() - 0.5) * 30;
-      const speed = 0.1 + Math.random() * 0.2;
-      temp.push({ x, y, z, speed });
-    }
-    return temp;
-  });
-
-  useFrame(() => {
-    if (mesh.current) {
-      particles.forEach((particle, i) => {
-        particle.y -= particle.speed;
-        if (particle.y < 0) {
-          particle.y = 20;
-        }
-        dummy.position.set(particle.x, particle.y, particle.z);
-        dummy.scale.set(0.05, 0.5, 0.05);
-        dummy.updateMatrix();
-        mesh.current!.setMatrixAt(i, dummy.matrix);
-      });
-      mesh.current.instanceMatrix.needsUpdate = true;
-    }
-  });
-
-  return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <instancedMesh ref={mesh} args={[undefined as any, undefined as any, count]}>
-      <cylinderGeometry args={[1, 1, 1, 4]} />
-      <meshBasicMaterial color="#93c5fd" transparent opacity={0.4} />
-    </instancedMesh>
-  );
-};
-
-const SkyBodies = ({ isNight, isStorm }: { isNight: boolean, isStorm: boolean }) => {
-  const sunPos = new THREE.Vector3(20, 12, -40);
-  const moonPos = new THREE.Vector3(-20, 12, -40);
-  
   return (
     <>
-      {/* Sun */}
-      {!isNight && (
-        <mesh position={sunPos}>
-          <sphereGeometry args={[8, 32, 32]} />
-          <meshBasicMaterial color={isStorm ? "#94a3b8" : "#fef08a"} />
-          {/* Subtle glow ring */}
-          {!isStorm && (
-            <mesh position={[0, 0, -1]}>
-              <circleGeometry args={[12, 32]} />
-              <meshBasicMaterial color="#fef08a" transparent opacity={0.2} />
-            </mesh>
-          )}
+      <color attach="background" args={[skyColor]} />
+      {/* Sun Mesh */}
+      {!isNight && !isStorm && (
+        <mesh position={[sunX, sunY, -15]}>
+          <circleGeometry args={[2, 32]} />
+          <meshBasicMaterial color={weather === 'OVERLOAD' ? '#f97316' : '#fbbf24'} />
         </mesh>
       )}
       
-      {/* Moon */}
-      {isNight && (
-        <mesh position={moonPos}>
-          <sphereGeometry args={[6, 32, 32]} />
-          <meshStandardMaterial color="#f8fafc" emissive="#e2e8f0" emissiveIntensity={0.2} roughness={1} />
-        </mesh>
-      )}
+      {/* Lighting */}
+      <ambientLight intensity={isNight ? 0.2 : (isStorm ? 0.6 : 1.5)} color="#ffffff" />
+      <directionalLight position={[15, 20, 10]} intensity={isNight ? 0.1 : 0.4} color="#ffffff" />
+      
+      {/* Rain Effect */}
+      {isStorm && <RainEffect />}
     </>
   );
 };
 
-export const SolarScene3D = () => {
-  const { latestStat, weatherMode } = useSolarSystem();
-  
-  const isNight = latestStat.hour < 6 || latestStat.hour >= 18;
-  const isProducing = latestStat.solarPower > 0;
-  const isStorm = weatherMode === 'STORM';
-
-  let bgColor = '#0284c7';
-  let ambientInt = 0.8;
-  let dirInt = 2.0;
-
-  if (isNight) {
-    bgColor = '#020617';
-    ambientInt = 0.3;
-    dirInt = 0.5;
-  } else {
-    if (weatherMode === 'CLOUDY') {
-      bgColor = '#64748b';
-      ambientInt = 0.6;
-      dirInt = 0.8;
-    } else if (weatherMode === 'STORM') {
-      bgColor = '#0f172a';
-      ambientInt = 0.2;
-      dirInt = 0.1;
-    } else if (weatherMode === 'OVERLOAD') {
-      bgColor = '#0369a1';
-      ambientInt = 1.0;
-      dirInt = 3.0;
+const RainEffect = () => {
+  const rainRef = useRef<THREE.Group>(null);
+  useFrame((_, d) => {
+    if (rainRef.current) {
+      rainRef.current.position.y -= d * 15;
+      if (rainRef.current.position.y < -10) rainRef.current.position.y = 10;
     }
-  }
+  });
 
-  let groundColor = '#15803d';
-  if (isNight) groundColor = '#0f172a';
-  else if (weatherMode === 'STORM') groundColor = '#1e293b';
-  else if (weatherMode === 'CLOUDY') groundColor = '#3f6212';
+  return (
+    <group ref={rainRef} position={[0, 10, 0]}>
+      {Array.from({ length: 50 }).map((_, i) => (
+        <mesh 
+          key={i} 
+          position={[(Math.random() - 0.5) * 30, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20]}
+          geometry={box}
+          scale={[0.02, 0.4, 0.02]}
+          material={new THREE.MeshBasicMaterial({ color: '#94a3b8', transparent: true, opacity: 0.5 })}
+        />
+      ))}
+    </group>
+  );
+};
+
+const HouseBase = ({ isLightOn, isTvOn, isAcOn }: { isLightOn: boolean, isTvOn: boolean, isAcOn: boolean }) => {
+  const acFanRef = useRef<THREE.Mesh>(null);
+  const tvRef = useRef<THREE.Mesh>(null);
+
+  useFrame((_, d) => {
+    if (isAcOn && acFanRef.current) acFanRef.current.rotation.z += d * 10;
+    if (isTvOn && tvRef.current) {
+      (tvRef.current.material as THREE.Material).opacity = 0.5 + Math.random() * 0.5; // Flicker
+    }
+  });
+
+  return (
+    <group>
+      {/* Foundation Platform */}
+      <mesh position={[-1, -0.1, 0]} geometry={box} scale={[12, 0.2, 7]} material={m.platform} />
+      
+      {/* Garage (Left side) */}
+      <group position={[-3.5, 1.3, 0]}>
+        <mesh geometry={box} scale={[3.5, 2.6, 4.5]} material={m.baseGray} />
+        <mesh position={[0, 1.35, 0]} geometry={box} scale={[3.7, 0.1, 4.7]} material={m.white} />
+        <mesh position={[0, -0.3, 2.26]} geometry={box} scale={[2.4, 2.0, 0.02]} material={m.darkGray} />
+        <mesh position={[1.8, -0.4, 1.8]} geometry={cyl} scale={[0.05, 1.6, 0.05]} material={new THREE.MeshLambertMaterial({ color: '#eab308' })} />
+        <mesh position={[2.0, -1.18, 1.8]} rotation={[0, 0, Math.PI / 2]} geometry={cyl} scale={[0.05, 0.4, 0.05]} material={new THREE.MeshLambertMaterial({ color: '#eab308' })} />
+      </group>
+
+      {/* Main House (Right side) */}
+      <group position={[1.5, 1.3, 0]}>
+        <mesh geometry={box} scale={[4.5, 2.6, 4.5]} material={m.white} />
+        
+        {/* Dynamic Glass Windows */}
+        <mesh position={[0, -0.1, 2.26]} geometry={box} scale={[3.8, 1.8, 0.02]} material={isLightOn ? mGlassOn : mGlassOff} />
+        
+        {/* TV Screen inside */}
+        {isTvOn && (
+          <mesh ref={tvRef} position={[0, -0.2, 2.2]} geometry={box} scale={[1.8, 1.0, 0.01]} material={mTVOn} />
+        )}
+
+        <mesh position={[0, -0.1, 2.27]} geometry={box} scale={[4, 0.1, 0.05]} material={m.glassFrame} />
+        <mesh position={[0, 0.8, 2.27]} geometry={box} scale={[4, 0.1, 0.05]} material={m.glassFrame} />
+        <mesh position={[0, -1.0, 2.27]} geometry={box} scale={[4, 0.1, 0.05]} material={m.glassFrame} />
+        <mesh position={[-1.95, -0.1, 2.27]} geometry={box} scale={[0.1, 1.8, 0.05]} material={m.glassFrame} />
+        <mesh position={[1.95, -0.1, 2.27]} geometry={box} scale={[0.1, 1.8, 0.05]} material={m.glassFrame} />
+
+        {/* AC Compressor */}
+        <group position={[2.35, -0.6, 1.0]}>
+          <mesh geometry={box} scale={[0.2, 0.8, 1.2]} material={m.white} />
+          <mesh position={[0.11, 0, 0]} geometry={cyl} scale={[0.02, 0.6, 0.6]} rotation={[0, 0, Math.PI/2]} material={m.darkGray} />
+          <mesh ref={acFanRef} position={[0.12, 0, 0]} geometry={box} scale={[0.01, 0.5, 0.1]} rotation={[0, 0, 0]} material={m.baseGray} />
+        </group>
+
+        {/* Roof */}
+        <group position={[0, 1.3, 0]}>
+          <mesh position={[-1.2, 0.6, 0]} rotation={[0, 0, Math.PI / 6]} geometry={box} scale={[3.0, 0.15, 4.8]} material={m.baseGray} />
+          <mesh position={[1.2, 0.6, 0]} rotation={[0, 0, -Math.PI / 6]} geometry={box} scale={[3.0, 0.15, 4.8]} material={m.baseGray} />
+          <mesh position={[-0.9, 0.3, 2.2]} rotation={[0, 0, Math.PI / 6]} geometry={box} scale={[2.5, 1.5, 0.1]} material={isLightOn ? mGlassOn : m.white} />
+          <mesh position={[0.9, 0.3, 2.2]} rotation={[0, 0, -Math.PI / 6]} geometry={box} scale={[2.5, 1.5, 0.1]} material={isLightOn ? mGlassOn : m.white} />
+          <mesh position={[-0.9, 0.3, -2.2]} rotation={[0, 0, Math.PI / 6]} geometry={box} scale={[2.5, 1.5, 0.1]} material={m.white} />
+          <mesh position={[0.9, 0.3, -2.2]} rotation={[0, 0, -Math.PI / 6]} geometry={box} scale={[2.5, 1.5, 0.1]} material={m.white} />
+        </group>
+      </group>
+    </group>
+  );
+};
+
+const SolarPanels = () => {
+  return (
+    // Positioned EXACTLY on top of the left roof panel of the Main House.
+    // Main house X=1.5, Y=1.3. Roof group Y=1.3. Left panel X=-1.2, Y=0.6.
+    // Absolute position = [1.5 - 1.2, 1.3 + 1.3 + 0.6, 0] = [0.3, 3.2, 0]
+    <group position={[0.3, 3.2, 0]} rotation={[0, 0, Math.PI / 6]}>
+      {/* 2x3 Grid of Panels */}
+      {[-0.6, 0.6].map(x =>
+        [-1, 0, 1].map(z => (
+          <group key={`${x}-${z}`} position={[x, 0.12, z]}>
+            {/* Panel Base/Frame */}
+            <mesh geometry={box} scale={[1.1, 0.05, 0.9]} material={m.panelFrame} />
+            {/* Blue Cell Area */}
+            <mesh position={[0, 0.03, 0]} geometry={box} scale={[1.05, 0.02, 0.85]} material={m.bluePanel} />
+            {/* Thin Grid Lines */}
+            <mesh position={[0, 0.04, 0]} geometry={box} scale={[0.02, 0.01, 0.85]} material={m.panelFrame} />
+            <mesh position={[0, 0.04, 0]} geometry={box} scale={[1.05, 0.01, 0.02]} material={m.panelFrame} />
+          </group>
+        ))
+      )}
+    </group>
+  );
+};
+
+const BatteryWall = ({ level }: { level: number }) => {
+  const fillRef = useRef<THREE.Mesh>(null);
+  useFrame((_, d) => {
+    if (fillRef.current) {
+      const h = Math.max(0.01, (1.1 * level) / 100);
+      fillRef.current.scale.y = THREE.MathUtils.lerp(fillRef.current.scale.y, h, d * 4);
+      fillRef.current.position.y = THREE.MathUtils.lerp(fillRef.current.position.y, -0.55 + h / 2, d * 4);
+    }
+  });
+
+  return (
+    // Mounted on the front wall of the house (where garage meets the house)
+    <group position={[-1.2, 1.0, 2.3]}>
+      {/* Battery Box */}
+      <mesh geometry={box} scale={[0.7, 1.4, 0.1]} material={m.white} />
+      <mesh position={[0, 0, 0.06]} geometry={box} scale={[0.6, 1.3, 0.01]} material={m.baseGray} />
+      
+      {/* LED indicators */}
+      <group position={[0, 0, 0.07]}>
+        {[-0.4, -0.2, 0, 0.2, 0.4].map((y, i) => (
+          // Change color based on charge level (rough estimate for visual)
+          <mesh key={y} position={[0, y, 0]} geometry={box} scale={[0.4, 0.08, 0.01]} material={(level > (i * 20)) ? m.batteryGreen : m.darkGray} />
+        ))}
+      </group>
+      
+      {/* Inverter Box directly above */}
+      <mesh position={[0, 0.9, 0]} geometry={box} scale={[0.5, 0.4, 0.1]} material={m.white} />
+      <mesh position={[0, 0.9, 0.06]} geometry={box} scale={[0.4, 0.3, 0.01]} material={m.darkGray} />
+      
+      {/* Connecting Wire */}
+      <mesh position={[-0.2, 0.7, 0.03]} geometry={box} scale={[0.02, 0.1, 0.02]} material={m.darkGray} />
+    </group>
+  );
+};
+
+// --- Trees (Soft spherical blobs in background) ---
+const Trees = () => (
+  <group position={[0, -0.1, -4]}>
+    <mesh position={[-6, 1.5, -2]} geometry={cyl} scale={[2.5, 3, 2.5]} material={m.baseGray} />
+    <mesh position={[-8, 1, 1]} geometry={cyl} scale={[2, 2, 2]} material={m.baseGray} />
+    <mesh position={[6, 1.5, -2]} geometry={cyl} scale={[2.5, 3, 2.5]} material={m.baseGray} />
+    <mesh position={[8, 1, 1]} geometry={cyl} scale={[2, 2, 2]} material={m.baseGray} />
+  </group>
+);
+
+
+// --- Main ---
+export const SolarScene3D = () => {
+  const { weatherMode, appliances, latestStat, isAiAutoMode, aiLogs } = useSolarSystem();
+  
+  // Safe fallbacks
+  const consumption = latestStat.homeConsumption ?? 0;
+  const solarPower = latestStat.solarPower ?? 0;
+  const batteryState = latestStat.batteryState ?? 0;
+  const gridImport = latestStat.gridImport ?? 0;
+
+  // Extract time from label (e.g. "14:30") to hour float
+  const timeParts = (latestStat.timeLabel || "12:00").split(':');
+  const hourFloat = parseInt(timeParts[0] || '12') + parseInt(timeParts[1] || '0') / 60;
+
+  const isLightOn = appliances.find(a => a.id === 'light')?.isOn ?? false;
+  const isTvOn = appliances.find(a => a.id === 'tv')?.isOn ?? false;
+  const isAcOn = appliances.find(a => a.id === 'ac')?.isOn ?? false;
+
+  const latestAiLog = aiLogs[0];
 
   return (
     <div className="absolute inset-0 z-0">
-      <Canvas shadows camera={{ position: [0, 8, 14], fov: 45 }}>
-        <color attach="background" args={[bgColor]} />
-        <ambientLight intensity={ambientInt} />
-        <directionalLight 
-          position={isNight ? [-5, 5, -5] : [5, 12, 5]} 
-          intensity={dirInt} 
-          castShadow 
-          color={isNight ? "#818cf8" : (weatherMode === 'OVERLOAD' ? "#ffedd5" : "#ffffff")}
-        />
-        <Environment preset="city" />
-        <SkyBodies isNight={isNight} isStorm={isStorm} />
-        
-        {isNight && !isStorm && <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />}
-        {weatherMode === 'CLOUDY' && (
-          <group position={[0, 25, -20]}>
-            <Clouds material={THREE.MeshBasicMaterial}>
-              <Cloud segments={60} bounds={[20, 5, 10]} volume={20} color="#cbd5e1" position={[-15, 0, 0]} opacity={0.5} speed={0.1} />
-              <Cloud segments={60} bounds={[20, 5, 10]} volume={20} color="#94a3b8" position={[15, 0, 0]} opacity={0.4} speed={0.1} />
-            </Clouds>
-          </group>
-        )}
-        {isStorm && <Rain />}
+      <Canvas
+        camera={{ position: [0, 8, 25], fov: 30 }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+      >
+        <SkyEnv hour={hourFloat} weather={weatherMode} />
 
-        {/* Enhanced Cyber Ground */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
-          <planeGeometry args={[150, 150]} />
-          <meshStandardMaterial color={groundColor} metalness={0.2} roughness={0.8} />
-        </mesh>
-        
-        {/* Isometric Grid Helper for Tech Look */}
-        <gridHelper args={[150, 150, isNight ? '#1e293b' : '#3f6212', isNight ? '#1e293b' : '#3f6212']} position={[0, 0, 0]} />
+        <mesh name="floor" rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.11, 0]} geometry={plane} material={m.floor} />
 
-        {/* Smooth Ambient Shadows */}
-        <ContactShadows position={[0, -0.04, 0]} opacity={0.6} scale={30} blur={2} far={10} />
+        {/* --- Models --- */}
+        <group position={[0, 0, -1]}>
+          <Trees />
+          <UtilityPole />
+          <HouseBase isLightOn={isLightOn} isTvOn={isTvOn} isAcOn={isAcOn} />
+          <SolarPanels />
+          <BatteryWall level={batteryState} />
 
-        <BigHouse isProducing={isProducing} />
-        <Battery level={latestStat.batteryState} />
+          {/* AI Auto-Pilot Billboard */}
+          {isAiAutoMode && latestAiLog && (
+            <Html position={[0, 7, 0]} center zIndexRange={[100, 0]}>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: '1px solid #10b981',
+                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.2)',
+                color: '#064e3b',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '12px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap'
+              }}>
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                🤖 AI: {latestAiLog.message}
+              </div>
+            </Html>
+          )}
 
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.5} mipmapBlur intensity={1.2} />
-        </EffectComposer>
+          {/* --- SVG Dashed Labels --- */}
+          {/* GRID */}
+          <DashedLabel 
+            position={[-5, 1.5, 0]} 
+            text="ไฟหลวง (Grid)" 
+            value={gridImport} unit="kW" 
+            lineColor={gridImport > 0 ? '#ef4444' : '#9ca3af'} // Red if importing
+            lineLength={60} lineAngle={90} align="center"
+          />
+          {/* SOLAR */}
+          <DashedLabel 
+            position={[0, 4.2, 1.2]} 
+            text="พลังงานแสงอาทิตย์ >" 
+            value={solarPower} unit="kW" 
+            lineColor={solarPower > 0 ? '#eab308' : '#9ca3af'} // Yellow if producing
+            lineLength={80} lineAngle={75} align="left"
+          />
+          {/* LOAD */}
+          <DashedLabel 
+            position={[1, -0.1, 3]} 
+            text="โหลด" 
+            value={consumption} unit="kW" 
+            lineColor={consumption > 0 ? '#3b82f6' : '#9ca3af'} // Blue if consuming
+            lineLength={50} lineAngle={270} align="center"
+          />
+          {/* BATTERY */}
+          <DashedLabel 
+            position={[-1.2, 0.5, 3]} 
+            text="แบตเตอรี่" 
+            value={0} unit="kW" // We just show the level for now
+            subtext={`${Math.floor(batteryState)}%`}
+            lineColor={batteryState > 20 ? '#22c55e' : '#ef4444'} // Green or Red
+            lineLength={70} lineAngle={270} align="left"
+          />
+        </group>
 
-        <OrbitControls 
-          enablePan={false} 
-          minPolarAngle={0} 
-          maxPolarAngle={Math.PI / 2 - 0.05}
-          minDistance={8}
-          maxDistance={30}
-          autoRotate={!isStorm}
-          autoRotateSpeed={0.5}
+        <OrbitControls
+          enablePan={false}
+          enableRotate={false}
+          enableZoom={false}
+          target={[0, 1.5, 0]}
         />
       </Canvas>
     </div>
